@@ -36,4 +36,4 @@ lerna-debug.log*
 .env
 prisma/migrations
 posts.json
-posts-test.json
+users.json
