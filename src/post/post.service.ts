@@ -1,31 +1,71 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { getSkip, getTotalPage } from '../utils/pagination';
 
 @Injectable()
 export class PostService {
   constructor(private readonly prismaService: PrismaService) { }
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
+  async create(createPostDto: CreatePostDto) {
+    try {
+      await this.prismaService.posts.create({
+        data: createPostDto
+      })
+      return { message: 'create post success' }
+    } catch (error) {
+      throw error
+    }
   }
 
-  async findAll() {
-    return await this.prismaService.posts.findMany({
-      take: 10,
-      skip: 0
-    })
+  async findAll(page: number, pageSize: number) {
+    try {
+      const skip = getSkip(page, pageSize || 10)
+      const [totalDoc, posts] = await Promise.all([
+        await this.prismaService.posts.count(),
+        await this.prismaService.posts.findMany({
+          skip: skip,
+          take: pageSize || 10,
+        })
+      ])
+
+      const totalPage = getTotalPage(totalDoc, pageSize)
+
+      const mapData = posts.map((item) => {
+        const { title, postedAt, postedBy, tags, content, id } = item
+        return {
+          key: id,
+          title,
+          postedAt,
+          postedBy,
+          tags,
+          content
+        }
+      })
+
+      const result = { data: mapData, totalPage, totalDoc }
+      return result
+    } catch (error) {
+      throw error
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async createMany(createPostDto: CreatePostDto[]) {
+    try {
+      await this.prismaService.posts.createMany({
+        data: createPostDto
+      })
+      return { message: 'create posts success' }
+    } catch (error) {
+      throw error
+    }
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async removeAll() {
+    try {
+      await this.prismaService.posts.deleteMany()
+      return { message: 'delete all posts success' }
+    } catch (error) {
+      throw error
+    }
   }
 }

@@ -2,11 +2,12 @@ import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { CommandRunner, Command } from 'nest-commander';
 import { UserService } from './user/user.service';
+import { PostService } from './post/post.service';
 @Command({
   name: 'seed',
 })
 export class CommandSeeder extends CommandRunner {
-  constructor(private readonly userService: UserService) {
+  constructor(private readonly userService: UserService, private readonly postService: PostService) {
     super();
   }
 
@@ -18,13 +19,12 @@ export class CommandSeeder extends CommandRunner {
   async loadData() {
     const prisma = new PrismaClient()
     try {
-
       await prisma.$connect()
 
-      await prisma.users.deleteMany()
+      await this.userService.removeAll()
       console.log('Deleted records in users table')
 
-      await prisma.posts.deleteMany()
+      await this.postService.removeAll()
       console.log('Deleted records in posts table')
 
       const rawUser = readFileSync('./users.json', { encoding: 'utf8' })
@@ -38,12 +38,8 @@ export class CommandSeeder extends CommandRunner {
         item.postedAt = new Date(item.postedAt)
       })
 
-      await prisma.posts.createMany({
-        data: postsJson
-      })
+      await this.postService.createMany(postsJson)
       console.log('Seeded posts data')
-
-
 
     } catch (e) {
       console.error(e)

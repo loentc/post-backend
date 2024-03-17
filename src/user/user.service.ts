@@ -1,38 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt'
+import * as crypto from 'crypto'
+import { Pbkdf2Config } from '../config/pbkdf2.config';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prismaService: PrismaService) { }
 
-  private async hash(password: string): Promise<string> {
-    const saltOrRounds = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, saltOrRounds);
-    return hashPassword;
+  private hashPbkdf2(password: string): string {
+    const { iterations, hashBytes, digest, saltBytes } = Pbkdf2Config;
+    const salt = crypto.randomBytes(saltBytes).toString("hex");
+    const hash = crypto
+      .pbkdf2Sync(password, salt, iterations, hashBytes, digest)
+      .toString("hex");
+    const hashPassword = [salt, hash].join("$");
+    return hashPassword
+
+  }
+
+  verifyPassword(password: string, combined: string) {
+    const { iterations, hashBytes, digest } = Pbkdf2Config;
+    const [salt, originalHash] = combined.split("$");
+    const hash = crypto.pbkdf2Sync(password, salt, iterations, hashBytes, digest).toString("hex");
+    const isPasswordMatch = hash === originalHash;
+    return isPasswordMatch
   }
 
   async create(createUserDto: CreateUserDto) {
-    const userDto = {
-      ...createUserDto,
-      password: await this.hash(createUserDto.password)
+    try {
+      const userDto = {
+        ...createUserDto,
+        password: this.hashPbkdf2(createUserDto.password)
+      }
+      return await this.prismaService.users.create({
+        data: userDto,
+      })
+    } catch (error) {
+      throw error
     }
-    return await this.prismaService.users.create({
-      data: userDto,
-
-    })
   }
 
   async createMany(createUserDto: CreateUserDto[]) {
-    await Promise.all(createUserDto.map(async (item) => {
-      item.password = await this.hash(item.password)
-    }))
-    return await this.prismaService.users.createMany({
-      data: createUserDto,
-
-    })
+    try {
+      createUserDto.map(async (item) => {
+        item.password = this.hashPbkdf2(item.password)
+      })
+      return await this.prismaService.users.createMany({
+        data: createUserDto,
+      })
+    } catch (error) {
+      throw error
+    }
   }
 
   async findAll() {
@@ -41,18 +60,22 @@ export class UserService {
   }
 
   async findOne(email: string) {
-    const user = await this.prismaService.users.findFirst({
-      where: { email: email }
-    })
-    return user
+    try {
+      const user = await this.prismaService.users.findFirst({
+        where: { email: email }
+      })
+      return user
+    } catch (error) {
+      throw error
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async removeAll() {
+    try {
+      await this.prismaService.users.deleteMany()
+      return { message: 'delete all user success' }
+    } catch (error) {
+      throw error
+    }
   }
 }
