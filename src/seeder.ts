@@ -27,6 +27,12 @@ export class CommandSeeder extends CommandRunner {
       await this.postService.removeAll()
       console.log('Deleted records in posts table')
 
+      await prisma.$queryRawUnsafe(`TRUNCATE "Users" RESTART IDENTITY CASCADE`)
+      console.log('Reset users auto increment to 1')
+
+      await prisma.$queryRawUnsafe(`TRUNCATE "Posts" RESTART IDENTITY CASCADE`)
+      console.log('Reset posts auto increment to 1')
+
       const rawUser = readFileSync('./users.json', { encoding: 'utf8' })
       const usersJson = JSON.parse(rawUser)
       await this.userService.createMany(usersJson)
