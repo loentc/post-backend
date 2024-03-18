@@ -1,0 +1,38 @@
+version: '3.1'
+services:
+  postgres:
+    image: postgres
+    container_name: postgres_db_post
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres1234
+      POSTGRES_DB: postdb
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_post
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - 8001:80
+    depends_on:
+      - postgres
+  post-app-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: post-backend-service
+    env_file:
+      - .env
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - postgres
+    restart: on-failure
+volumes:
+  postgres_data:
+    driver: local

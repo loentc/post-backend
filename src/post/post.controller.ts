@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 
 @Controller('post')
 export class PostController {
@@ -11,6 +12,7 @@ export class PostController {
     return this.postService.create(createPostDto);
   }
 
+  @UseGuards(JwtGuard)
   @Get()
   findAll(@Query('page') page: number, @Query('pageSize') pageSize: number) {
     return this.postService.findAll(page, pageSize);
