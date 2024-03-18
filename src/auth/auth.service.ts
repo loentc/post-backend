@@ -33,9 +33,8 @@ export class AuthService {
             secret: process.env.JWT_SECRET_KEY,
         });
         const result = {
-            user: {
-                email: user.email,
-            },
+            email: user.email,
+            fullname: `${user.firstname} ${user.lastname}`,
             accessToken: access_token,
         };
         return result;

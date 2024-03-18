@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { getSkip, getTotalPage } from '../utils/pagination';
+import { PostRepository } from './post.repository';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly postRepository: PostRepository) { }
   async create(createPostDto: CreatePostDto) {
     try {
-      await this.prismaService.posts.create({
+      await this.postRepository.create({
         data: createPostDto
       })
       return { message: 'create post success' }
@@ -21,8 +21,8 @@ export class PostService {
     try {
       const skip = getSkip(page, pageSize || 10)
       const [totalDoc, posts] = await Promise.all([
-        await this.prismaService.posts.count(),
-        await this.prismaService.posts.findMany({
+        await this.postRepository.count(),
+        await this.postRepository.findMany({
           skip: skip,
           take: pageSize || 10,
         })
@@ -51,7 +51,7 @@ export class PostService {
 
   async createMany(createPostDto: CreatePostDto[]) {
     try {
-      await this.prismaService.posts.createMany({
+      await this.postRepository.createMany({
         data: createPostDto
       })
       return { message: 'create posts success' }
@@ -62,7 +62,7 @@ export class PostService {
 
   async removeAll() {
     try {
-      await this.prismaService.posts.deleteMany()
+      await this.postRepository.deleteMany()
       return { message: 'delete all posts success' }
     } catch (error) {
       throw error

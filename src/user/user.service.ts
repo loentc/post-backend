@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import * as crypto from 'crypto'
 import { Pbkdf2Config } from '../config/pbkdf2.config';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(private readonly userRepository: UserRepository) { }
 
   private hashPbkdf2(password: string): string {
     const { iterations, hashBytes, digest, saltBytes } = Pbkdf2Config;
@@ -33,7 +33,7 @@ export class UserService {
         ...createUserDto,
         password: this.hashPbkdf2(createUserDto.password)
       }
-      return await this.prismaService.users.create({
+      return await this.userRepository.create({
         data: userDto,
       })
     } catch (error) {
@@ -46,7 +46,7 @@ export class UserService {
       createUserDto.map(async (item) => {
         item.password = this.hashPbkdf2(item.password)
       })
-      return await this.prismaService.users.createMany({
+      return await this.userRepository.createMany({
         data: createUserDto,
       })
     } catch (error) {
@@ -55,13 +55,13 @@ export class UserService {
   }
 
   async findAll() {
-    const user = await this.prismaService.users.findMany()
+    const user = await this.userRepository.findMany()
     return user
   }
 
   async findOne(email: string) {
     try {
-      const user = await this.prismaService.users.findFirst({
+      const user = await this.userRepository.findFirst({
         where: { email: email }
       })
       return user
@@ -72,7 +72,7 @@ export class UserService {
 
   async removeAll() {
     try {
-      await this.prismaService.users.deleteMany()
+      await this.userRepository.deleteMany()
       return { message: 'delete all user success' }
     } catch (error) {
       throw error
