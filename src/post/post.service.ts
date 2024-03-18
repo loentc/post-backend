@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { getSkip, getTotalPage } from '../utils/pagination';
 import { PostRepository } from './post.repository';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly postRepository: PostRepository) { }
+  constructor(private readonly postRepository: PostRepository, private readonly prismaService: PrismaService) { }
   async create(createPostDto: CreatePostDto) {
     try {
       await this.postRepository.create({
@@ -22,7 +23,7 @@ export class PostService {
       const skip = getSkip(page, pageSize || 10)
       const [totalDoc, posts] = await Promise.all([
         await this.postRepository.count(),
-        await this.postRepository.findMany({
+        await this.prismaService.posts.findMany({
           skip: skip,
           take: pageSize || 10,
         })
