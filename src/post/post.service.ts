@@ -63,7 +63,7 @@ export class PostService {
 
   async removeAll() {
     try {
-      await this.postRepository.deleteMany()
+      await this.prismaService.posts.deleteMany()
       return { message: 'delete all posts success' }
     } catch (error) {
       throw error

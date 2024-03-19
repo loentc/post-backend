@@ -3,10 +3,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as crypto from 'crypto'
 import { Pbkdf2Config } from '../config/pbkdf2.config';
 import { UserRepository } from './user.repository';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) { }
+  constructor(private readonly userRepository: UserRepository, private readonly prismaService: PrismaService) { }
 
   private hashPbkdf2(password: string): string {
     const { iterations, hashBytes, digest, saltBytes } = Pbkdf2Config;
@@ -72,7 +73,7 @@ export class UserService {
 
   async removeAll() {
     try {
-      await this.userRepository.deleteMany()
+      await this.prismaService.users.deleteMany()
       return { message: 'delete all user success' }
     } catch (error) {
       throw error

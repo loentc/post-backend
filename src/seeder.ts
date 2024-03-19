@@ -21,11 +21,11 @@ export class CommandSeeder extends CommandRunner {
     try {
       await prisma.$connect()
 
-      await this.userService.removeAll()
-      console.log('Deleted records in users table')
+      // await this.userService.removeAll()
+      // console.log('Deleted records in users table')
 
-      await this.postService.removeAll()
-      console.log('Deleted records in posts table')
+      // await this.postService.removeAll()
+      // console.log('Deleted records in posts table')
 
       await prisma.$queryRawUnsafe(`TRUNCATE "Users" RESTART IDENTITY CASCADE`)
       console.log('Reset users auto increment to 1')

@@ -19,7 +19,8 @@
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
         "seed:dev": "ts-node src/cli.ts seed",
-        "seed": "tsc && node ./dist/src/cli.js seed"
+        "seed": "tsc && node ./dist/cli.js seed",
+        "prod": "npx prisma migrate deploy && node ./dist/cli.js seed && node dist/main"
     },
     "dependencies": {
         "@nestjs/common": "^10.0.0",
