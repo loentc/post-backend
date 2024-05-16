@@ -18,7 +18,7 @@ export class PostService {
     }
   }
 
-  async findAll(page: number, pageSize: number) {
+  async findAll(page: number, pageSize: number, search: string) {
     try {
       const skip = getSkip(page, pageSize || 10)
       const [totalDoc, posts] = await Promise.all([
@@ -26,6 +26,11 @@ export class PostService {
         await this.prismaService.posts.findMany({
           skip: skip,
           take: pageSize || 10,
+          where: {
+            title: {
+              contains: search
+            },
+          }
         })
       ])
 

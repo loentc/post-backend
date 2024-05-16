@@ -14,8 +14,8 @@ export class PostController {
 
   @UseGuards(JwtGuard)
   @Get()
-  findAll(@Query('page') page: number, @Query('pageSize') pageSize: number) {
-    return this.postService.findAll(page, pageSize);
+  findAll(@Query('page') page: number, @Query('pageSize') pageSize: number, @Query('search') search: string) {
+    return this.postService.findAll(page, pageSize, search);
   }
 
 }
